@@ -56,7 +56,7 @@ frontend has **no map and no filters**. Improving on that is the assignment.
    - **CD:** pushing to `main` updates the live frontend (Vercel Git integration).
 
 ## Stack (do not swap these)
-- **Frontend: Next.js on Vercel.**
+- **Frontend: Next.js on Vercel, Defang, or whatever deployment framework works for you. CD principles required.**
 - **Backend: AWS, on your own (free-tier) dev account.** The scaffold uses
   **DynamoDB** with a geohash index for geospatial queries, fronted by Lambda +
   API Gateway. Stay on DynamoDB.
