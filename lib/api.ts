@@ -20,6 +20,7 @@ function toQueryString(filter: PropertyFilter): string {
   if (filter.minRent !== undefined) params.set("minRent", String(filter.minRent));
   if (filter.maxRent !== undefined) params.set("maxRent", String(filter.maxRent));
   if (filter.bedrooms !== undefined) params.set("bedrooms", String(filter.bedrooms));
+  if (filter.bathrooms !== undefined) params.set("bathrooms", String(filter.bathrooms));
   if (filter.propertyType !== undefined) params.set("propertyType", filter.propertyType);
   const query = params.toString();
   return query ? `?${query}` : "";

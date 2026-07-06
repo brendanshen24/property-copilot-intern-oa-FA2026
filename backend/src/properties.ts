@@ -1,4 +1,4 @@
-import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { GetCommand, PutCommand, ScanCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { GEO_INDEX, TABLE_NAME, getDocClient } from "./db";
 import { encodeGeohash, geohashPrefix, type BoundingBox } from "./geo";
 import type { Property } from "./types";
@@ -63,7 +63,29 @@ export async function listAllProperties(): Promise<Property[]> {
  *
  * This avoids scanning the whole table and is what the map viewport should call.
  */
-export async function queryByBoundingBox(_box: BoundingBox): Promise<Property[]> {
-  void GEO_INDEX; // available for your Query: IndexName: GEO_INDEX
-  throw new Error("queryByBoundingBox is not implemented yet — see Backend & Data Design.");
+export async function queryByBoundingBox(box: BoundingBox): Promise<Property[]> {
+  const { boundingBoxPrefixes, isInBoundingBox } = await import("./geo");
+  const prefixes = boundingBoxPrefixes(box);
+  const items: Property[] = [];
+
+  for (const prefix of prefixes) {
+    let lastKey: Record<string, unknown> | undefined;
+
+    do {
+      const result = await getDocClient().send(
+        new QueryCommand({
+          TableName: TABLE_NAME,
+          IndexName: GEO_INDEX,
+          KeyConditionExpression: "geohashPrefix = :prefix",
+          ExpressionAttributeValues: { ":prefix": prefix },
+          ExclusiveStartKey: lastKey
+        })
+      );
+      const queryItems = (result.Items as Property[] | undefined) ?? [];
+      items.push(...queryItems.filter((item) => isInBoundingBox(item.lat, item.lng, box)));
+      lastKey = result.LastEvaluatedKey as Record<string, unknown> | undefined;
+    } while (lastKey);
+  }
+
+  return items;
 }

@@ -28,5 +28,6 @@ export type PropertyFilter = {
   minRent?: number;
   maxRent?: number;
   bedrooms?: number;
+  bathrooms?: number;
   propertyType?: PropertyType;
 };
