@@ -50,7 +50,9 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
         container: mapContainerRef.current,
         style: "mapbox://styles/mapbox/streets-v12",
         center: [-123.1207, 49.2827],
-        zoom: 10
+        zoom: 10,
+        minZoom: 8,
+        maxZoom: 15
       });
 
       // Handle viewport changes
