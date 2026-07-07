@@ -106,7 +106,7 @@ export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
               min={1000}
               max={10000}
               step={100}
-              onValueChange={setPriceRange}
+              onValueChange={(values) => setPriceRange(values as [number, number])}
               onValueCommit={handlePriceChange}
               className="py-4"
             />

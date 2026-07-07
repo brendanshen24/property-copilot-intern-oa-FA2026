@@ -45,6 +45,7 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
       mapRef.current.on("moveend", () => {
         if (!mapRef.current || !onViewportChange) return;
         const bounds = mapRef.current.getBounds();
+        if (!bounds) return;
         const bbox = [
           bounds.getSouth(),
           bounds.getWest(),
@@ -123,12 +124,14 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
         const contentEl = el.querySelector(".marker-content") as HTMLDivElement;
         marker.getElement().addEventListener("mouseenter", () => {
           if (contentEl) contentEl.style.transform = "scale(1.2)";
-          marker.getPopup().addTo(map);
+          const popup = marker.getPopup();
+          if (popup) popup.addTo(map);
         });
         marker.getElement().addEventListener("mouseleave", () => {
           if (contentEl && property.id !== activeIdRef.current) {
             contentEl.style.transform = "scale(1)";
-            marker.getPopup().remove();
+            const popup = marker.getPopup();
+            if (popup) popup.remove();
           }
         });
 
@@ -166,12 +169,13 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
       const contentEl = el.querySelector(".marker-content") as HTMLDivElement;
 
       if (contentEl) {
+        const popup = marker.getPopup();
         if (isActive) {
           contentEl.style.transform = "scale(1.2)";
-          marker.getPopup().addTo(map);
+          if (popup) popup.addTo(map);
         } else {
           contentEl.style.transform = "scale(1)";
-          marker.getPopup().remove();
+          if (popup) popup.remove();
         }
       }
     }
