@@ -105,7 +105,7 @@ export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
             <ChevronDown className="h-4 w-4 shrink-0" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-80">
+        <PopoverContent className="w-[90vw] lg:w-80">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold">Price Range</span>
@@ -153,7 +153,7 @@ export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
             <ChevronDown className="h-4 w-4 shrink-0" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-48 p-2">
+        <PopoverContent className="w-[90vw] lg:w-48 p-2">
           <div className="flex flex-col gap-1">
             {BEDROOM_OPTIONS.map((option) => (
               <button
@@ -196,7 +196,7 @@ export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
             <ChevronDown className="h-4 w-4 shrink-0" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-48 p-2">
+        <PopoverContent className="w-[90vw] lg:w-48 p-2">
           <div className="flex flex-col gap-1">
             {BATHROOM_OPTIONS.map((option) => (
               <button
@@ -239,7 +239,7 @@ export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
             <ChevronDown className="h-4 w-4 shrink-0" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-48 p-2">
+        <PopoverContent className="w-[90vw] lg:w-48 p-2">
           <div className="flex flex-col gap-1">
             {PROPERTY_TYPE_OPTIONS.map((option) => (
               <button
