@@ -26,7 +26,7 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
   const activeIdRef = useRef<string | null | undefined>(activeId);
   const lastUserInteractionRef = useRef<number>(0);
   const isResettingRef = useRef(false);
-  const lastBboxRef = useRef<string | undefined>();
+  const lastBboxRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     activeIdRef.current = activeId;
