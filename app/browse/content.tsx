@@ -6,7 +6,7 @@ import type { Property, PropertyFilter } from "@/lib/types";
 import { PropertyCard } from "@/components/PropertyCard";
 import { MapPanelWrapper } from "@/components/MapPanelWrapper";
 import { FilterBar } from "@/components/FilterBar";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Map as MapIcon, List as ListIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +69,7 @@ export function BrowseContent() {
       <div>
         <h1 className="text-2xl font-semibold">Browse rentals</h1>
         <p className="text-sm text-gray-600">
-          Metro Vancouver listings. Filter by price, bedrooms, bathrooms, and sync with the map.
+          Metro Vancouver listings. Filter by price, bedrooms, bathrooms, property type, and sync with the map.
         </p>
       </div>
 

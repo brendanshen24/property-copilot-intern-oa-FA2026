@@ -22,6 +22,7 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const prevPropertiesJson = useRef<string>("");
   const activeIdRef = useRef<string | null | undefined>(activeId);
+  const lastUserInteractionRef = useRef<number>(0);
 
   useEffect(() => {
     activeIdRef.current = activeId;
@@ -44,6 +45,7 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
       // Handle viewport changes
       mapRef.current.on("moveend", () => {
         if (!mapRef.current || !onViewportChange) return;
+        lastUserInteractionRef.current = Date.now();
         const bounds = mapRef.current.getBounds();
         if (!bounds) return;
         const bbox = [
@@ -143,8 +145,12 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
     }
 
     // Fit bounds if we have properties and they actually changed
-    if (properties.length > 0 && !bounds.isEmpty() && propertiesChanged) {
+    // But skip if user just zoomed/panned in the last 1000ms to prevent auto-zoom loops
+    const timeSinceLastInteraction = Date.now() - lastUserInteractionRef.current;
+    if (properties.length > 0 && !bounds.isEmpty() && propertiesChanged && timeSinceLastInteraction > 1000) {
       map.fitBounds(bounds, { padding: 50, duration: 1000 });
+      prevPropertiesJson.current = propertiesJson;
+    } else if (propertiesChanged) {
       prevPropertiesJson.current = propertiesJson;
     }
   }, [properties, onSelect, onViewportChange]);

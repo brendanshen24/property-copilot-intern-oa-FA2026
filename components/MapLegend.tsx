@@ -10,7 +10,7 @@ const legendItems = [
 
 export function MapLegend() {
   return (
-    <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-3 px-1">
+    <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-[8.5px] px-1">
       {legendItems.map((item) => (
         <div key={item.label} className="flex items-center gap-2">
           <div

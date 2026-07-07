@@ -51,6 +51,42 @@ describe("filterProperties", () => {
       expect(all.every((p) => p.rent <= 3000 && p.bedrooms >= 2 && p.bathrooms >= 1)).toBe(true);
     });
   });
+
+  describe("propertyType filter", () => {
+    test("filters by exact property type", () => {
+      const result = filterProperties(PROPERTIES, { propertyType: "condo" });
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.every((p) => p.propertyType === "condo")).toBe(true);
+    });
+
+    test("filters by different property types", () => {
+      const apartments = filterProperties(PROPERTIES, { propertyType: "apartment" });
+      const houses = filterProperties(PROPERTIES, { propertyType: "house" });
+      const townhouses = filterProperties(PROPERTIES, { propertyType: "townhouse" });
+
+      expect(apartments.every((p) => p.propertyType === "apartment")).toBe(true);
+      expect(houses.every((p) => p.propertyType === "house")).toBe(true);
+      expect(townhouses.every((p) => p.propertyType === "townhouse")).toBe(true);
+    });
+
+    test("combines with other filters", () => {
+      const rentOnly = filterProperties(PROPERTIES, { maxRent: 3000 });
+      const rentAndType = filterProperties(PROPERTIES, { maxRent: 3000, propertyType: "house" });
+      expect(rentAndType.length).toBeLessThanOrEqual(rentOnly.length);
+      expect(rentAndType.every((p) => p.rent <= 3000 && p.propertyType === "house")).toBe(true);
+    });
+
+    test("combines with bedrooms and bathrooms", () => {
+      const result = filterProperties(PROPERTIES, { 
+        propertyType: "house", 
+        bedrooms: 2, 
+        bathrooms: 1 
+      });
+      expect(result.every((p) => 
+        p.propertyType === "house" && p.bedrooms >= 2 && p.bathrooms >= 1
+      )).toBe(true);
+    });
+  });
 });
 
 describe("parseFilter", () => {
@@ -63,5 +99,30 @@ describe("parseFilter", () => {
   test("ignores invalid property type and absent fields", () => {
     expect(parseFilter({ propertyType: "castle" })).toEqual({});
     expect(parseFilter({})).toEqual({});
+  });
+
+  describe("propertyType parsing", () => {
+    test("accepts all valid property types", () => {
+      expect(parseFilter({ propertyType: "apartment" })).toEqual({ propertyType: "apartment" });
+      expect(parseFilter({ propertyType: "condo" })).toEqual({ propertyType: "condo" });
+      expect(parseFilter({ propertyType: "house" })).toEqual({ propertyType: "house" });
+      expect(parseFilter({ propertyType: "townhouse" })).toEqual({ propertyType: "townhouse" });
+    });
+
+    test("rejects invalid property types", () => {
+      expect(parseFilter({ propertyType: "castle" })).toEqual({});
+      expect(parseFilter({ propertyType: "APARTMENT" })).toEqual({});
+      expect(parseFilter({ propertyType: "studio" })).toEqual({});
+      expect(parseFilter({ propertyType: "" })).toEqual({});
+    });
+
+    test("preserves propertyType with other valid filters", () => {
+      const result = parseFilter({ 
+        minRent: "1500", 
+        bedrooms: "2", 
+        propertyType: "condo" 
+      });
+      expect(result).toEqual({ minRent: 1500, bedrooms: 2, propertyType: "condo" });
+    });
   });
 });

@@ -2,7 +2,7 @@
 
 import type { PropertyFilter } from "@/lib/types";
 import { useState } from "react";
-import { ChevronDown, RotateCcw, Bed, Bath, DollarSign } from "lucide-react";
+import { ChevronDown, RotateCcw, Bed, Bath, DollarSign, Home } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/Popover";
 import { Slider } from "./ui/Slider";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,14 @@ const BATHROOM_OPTIONS = [
   { label: "1+ bathroom", value: 1 },
   { label: "2+ bathrooms", value: 2 },
   { label: "3+ bathrooms", value: 3 }
+];
+
+const PROPERTY_TYPE_OPTIONS = [
+  { label: "Any type", value: undefined },
+  { label: "Apartment", value: "apartment" },
+  { label: "Condo", value: "condo" },
+  { label: "House", value: "house" },
+  { label: "Townhouse", value: "townhouse" }
 ];
 
 export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
@@ -53,6 +61,10 @@ export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
 
   const handleBathroomChange = (bathrooms?: number) => {
     handleFilterUpdate({ ...filter, bathrooms });
+  };
+
+  const handlePropertyTypeChange = (propertyType?: typeof PROPERTY_TYPE_OPTIONS[0]["value"]) => {
+    handleFilterUpdate({ ...filter, propertyType });
   };
 
   const handleReset = () => {
@@ -193,6 +205,49 @@ export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
                 className={cn(
                   "rounded-md px-3 py-2 text-left text-sm transition-colors",
                   filter.bathrooms === option.value
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      {/* Property Type Filter */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            disabled={disabled}
+            className={cn(
+              "flex w-full lg:w-[160px] items-center justify-between gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all hover:bg-gray-50 disabled:opacity-50",
+              filter.propertyType !== undefined 
+                ? "border-blue-600 bg-blue-50 text-blue-700" 
+                : "border-gray-200 text-gray-700"
+            )}
+          >
+            <div className="flex items-center gap-2 truncate">
+              <Home className="h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {filter.propertyType === undefined
+                  ? "Type"
+                  : PROPERTY_TYPE_OPTIONS.find(o => o.value === filter.propertyType)?.label}
+              </span>
+            </div>
+            <ChevronDown className="h-4 w-4 shrink-0" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-48 p-2">
+          <div className="flex flex-col gap-1">
+            {PROPERTY_TYPE_OPTIONS.map((option) => (
+              <button
+                key={String(option.value)}
+                onClick={() => handlePropertyTypeChange(option.value)}
+                className={cn(
+                  "rounded-md px-3 py-2 text-left text-sm transition-colors",
+                  filter.propertyType === option.value
                     ? "bg-blue-600 text-white"
                     : "text-gray-700 hover:bg-gray-100"
                 )}
