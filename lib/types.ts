@@ -30,5 +30,6 @@ export type PropertyFilter = {
   bedrooms?: number;
   bathrooms?: number;
   propertyType?: PropertyType;
+  city?: City;
   bbox?: string;
 };

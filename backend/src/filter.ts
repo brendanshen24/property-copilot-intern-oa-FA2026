@@ -26,6 +26,9 @@ export function filterProperties(properties: Property[], filter: PropertyFilter)
     if (filter.propertyType !== undefined && property.propertyType !== filter.propertyType) {
       return false;
     }
+    if (filter.city !== undefined && property.city !== filter.city) {
+      return false;
+    }
     return true;
   });
 }
@@ -61,6 +64,15 @@ export function parseFilter(query: Record<string, string | undefined>): Property
     query.propertyType === "townhouse"
   ) {
     filter.propertyType = query.propertyType;
+  }
+
+  if (
+    query.city === "Vancouver" ||
+    query.city === "Richmond" ||
+    query.city === "Burnaby" ||
+    query.city === "Surrey"
+  ) {
+    filter.city = query.city;
   }
 
   return filter;

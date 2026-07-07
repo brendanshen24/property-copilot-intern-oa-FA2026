@@ -10,6 +10,7 @@ type MapPanelProps = {
   onSelect?: (id: string) => void;
   onViewportChange?: (bbox: string) => void;
   viewMode?: "list" | "map";
+  resetBounds?: number;
 };
 
 // Dynamic import to avoid server-side rendering issues with browser-only libraries
@@ -25,7 +26,7 @@ const DynamicMapPanel = dynamic(
   }
 );
 
-export function MapPanelWrapper({ properties, activeId, onSelect, onViewportChange, viewMode }: MapPanelProps) {
+export function MapPanelWrapper({ properties, activeId, onSelect, onViewportChange, viewMode, resetBounds }: MapPanelProps) {
   return (
     <div className="flex flex-col h-full">
       <MapLegend />
@@ -36,6 +37,7 @@ export function MapPanelWrapper({ properties, activeId, onSelect, onViewportChan
           onSelect={onSelect} 
           onViewportChange={onViewportChange}
           viewMode={viewMode}
+          resetBounds={resetBounds}
         />
       </div>
     </div>

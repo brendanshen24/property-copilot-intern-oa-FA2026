@@ -1,8 +1,8 @@
 "use client";
 
-import type { PropertyFilter } from "@/lib/types";
+import type { PropertyFilter, PropertyType, City } from "@/lib/types";
 import { useState } from "react";
-import { ChevronDown, RotateCcw, Bed, Bath, DollarSign, Home } from "lucide-react";
+import { ChevronDown, RotateCcw, Bed, Bath, DollarSign, Home, MapPin } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/Popover";
 import { Slider } from "./ui/Slider";
 import { cn } from "@/lib/utils";
@@ -28,12 +28,20 @@ const BATHROOM_OPTIONS = [
   { label: "3+ bathrooms", value: 3 }
 ];
 
-const PROPERTY_TYPE_OPTIONS = [
+const PROPERTY_TYPE_OPTIONS: Array<{ label: string; value: PropertyType | undefined }> = [
   { label: "Any type", value: undefined },
   { label: "Apartment", value: "apartment" },
   { label: "Condo", value: "condo" },
   { label: "House", value: "house" },
   { label: "Townhouse", value: "townhouse" }
+];
+
+const CITY_OPTIONS: Array<{ label: string; value: City | undefined }> = [
+  { label: "Any city", value: undefined },
+  { label: "Vancouver", value: "Vancouver" },
+  { label: "Richmond", value: "Richmond" },
+  { label: "Burnaby", value: "Burnaby" },
+  { label: "Surrey", value: "Surrey" }
 ];
 
 export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
@@ -63,8 +71,12 @@ export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
     handleFilterUpdate({ ...filter, bathrooms });
   };
 
-  const handlePropertyTypeChange = (propertyType?: typeof PROPERTY_TYPE_OPTIONS[0]["value"]) => {
+  const handlePropertyTypeChange = (propertyType?: PropertyType) => {
     handleFilterUpdate({ ...filter, propertyType });
+  };
+
+  const handleCityChange = (city?: City) => {
+    handleFilterUpdate({ ...filter, city });
   };
 
   const handleReset = () => {
@@ -248,6 +260,49 @@ export function FilterBar({ onFilterChange, disabled }: FilterBarProps) {
                 className={cn(
                   "rounded-md px-3 py-2 text-left text-sm transition-colors",
                   filter.propertyType === option.value
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      {/* City Filter */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            disabled={disabled}
+            className={cn(
+              "flex w-full lg:w-[160px] items-center justify-between gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all hover:bg-gray-50 disabled:opacity-50",
+              filter.city !== undefined 
+                ? "border-blue-600 bg-blue-50 text-blue-700" 
+                : "border-gray-200 text-gray-700"
+            )}
+          >
+            <div className="flex items-center gap-2 truncate">
+              <MapPin className="h-4 w-4 shrink-0" />
+              <span className="truncate">
+                {filter.city === undefined
+                  ? "City"
+                  : CITY_OPTIONS.find(o => o.value === filter.city)?.label}
+              </span>
+            </div>
+            <ChevronDown className="h-4 w-4 shrink-0" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[90vw] lg:w-48 p-2">
+          <div className="flex flex-col gap-1">
+            {CITY_OPTIONS.map((option) => (
+              <button
+                key={String(option.value)}
+                onClick={() => handleCityChange(option.value as any)}
+                className={cn(
+                  "rounded-md px-3 py-2 text-left text-sm transition-colors",
+                  filter.city === option.value
                     ? "bg-blue-600 text-white"
                     : "text-gray-700 hover:bg-gray-100"
                 )}

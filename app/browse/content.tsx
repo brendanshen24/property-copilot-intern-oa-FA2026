@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { fetchProperties } from "@/lib/api";
 import type { Property, PropertyFilter } from "@/lib/types";
 import { PropertyCard } from "@/components/PropertyCard";
@@ -21,6 +21,8 @@ export function BrowseContent() {
   const [filter, setFilter] = useState<PropertyFilter>({});
   const [isFiltering, setIsFiltering] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [resetBoundsCounter, setResetBoundsCounter] = useState(0);
+  const viewportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load properties when filter changes
   useEffect(() => {
@@ -56,13 +58,32 @@ export function BrowseContent() {
   }, [filter]);
 
   const handleFilterChange = (newFilter: PropertyFilter) => {
-    setFilter((prev) => ({ ...newFilter, bbox: prev.bbox }));
+    // When user changes filters (not viewport), clear bbox to reset map view
+    // This allows the map to fit all new results and prevents them from being
+    // outside the bounding box constraint
+    setFilter(newFilter);
     setActiveId(null);
+    setResetBoundsCounter(c => c + 1);
   };
 
-  const handleViewportChange = (bbox: string) => {
-    setFilter((prev) => ({ ...prev, bbox }));
-  };
+  // Debounce viewport changes to 300ms to avoid spamming the API
+  const handleViewportChange = useCallback((bbox: string) => {
+    if (viewportTimeoutRef.current) {
+      clearTimeout(viewportTimeoutRef.current);
+    }
+    viewportTimeoutRef.current = setTimeout(() => {
+      setFilter((prev) => ({ ...prev, bbox }));
+    }, 300);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (viewportTimeoutRef.current) {
+        clearTimeout(viewportTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <section className="space-y-4">
@@ -171,6 +192,7 @@ export function BrowseContent() {
               onSelect={setActiveId} 
               onViewportChange={handleViewportChange}
               viewMode={viewMode}
+              resetBounds={resetBoundsCounter}
             />
           </div>
         </div>

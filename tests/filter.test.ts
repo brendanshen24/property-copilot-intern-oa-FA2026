@@ -87,6 +87,33 @@ describe("filterProperties", () => {
       )).toBe(true);
     });
   });
+
+  describe("city filter", () => {
+    test("filters by exact city", () => {
+      const result = filterProperties(PROPERTIES, { city: "Vancouver" });
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.every((p) => p.city === "Vancouver")).toBe(true);
+    });
+
+    test("filters by different cities", () => {
+      const vancouver = filterProperties(PROPERTIES, { city: "Vancouver" });
+      const richmond = filterProperties(PROPERTIES, { city: "Richmond" });
+      const burnaby = filterProperties(PROPERTIES, { city: "Burnaby" });
+      const surrey = filterProperties(PROPERTIES, { city: "Surrey" });
+
+      expect(vancouver.every((p) => p.city === "Vancouver")).toBe(true);
+      expect(richmond.every((p) => p.city === "Richmond")).toBe(true);
+      expect(burnaby.every((p) => p.city === "Burnaby")).toBe(true);
+      expect(surrey.every((p) => p.city === "Surrey")).toBe(true);
+    });
+
+    test("combines with other filters", () => {
+      const rentOnly = filterProperties(PROPERTIES, { maxRent: 3000 });
+      const rentAndCity = filterProperties(PROPERTIES, { maxRent: 3000, city: "Burnaby" });
+      expect(rentAndCity.length).toBeLessThanOrEqual(rentOnly.length);
+      expect(rentAndCity.every((p) => p.rent <= 3000 && p.city === "Burnaby")).toBe(true);
+    });
+  });
 });
 
 describe("parseFilter", () => {
@@ -123,6 +150,30 @@ describe("parseFilter", () => {
         propertyType: "condo" 
       });
       expect(result).toEqual({ minRent: 1500, bedrooms: 2, propertyType: "condo" });
+    });
+  });
+
+  describe("city parsing", () => {
+    test("accepts all valid cities", () => {
+      expect(parseFilter({ city: "Vancouver" })).toEqual({ city: "Vancouver" });
+      expect(parseFilter({ city: "Richmond" })).toEqual({ city: "Richmond" });
+      expect(parseFilter({ city: "Burnaby" })).toEqual({ city: "Burnaby" });
+      expect(parseFilter({ city: "Surrey" })).toEqual({ city: "Surrey" });
+    });
+
+    test("rejects invalid cities", () => {
+      expect(parseFilter({ city: "Victoria" })).toEqual({});
+      expect(parseFilter({ city: "VANCOUVER" })).toEqual({});
+      expect(parseFilter({ city: "" })).toEqual({});
+    });
+
+    test("preserves city with other valid filters", () => {
+      const result = parseFilter({ 
+        minRent: "1500", 
+        bedrooms: "2", 
+        city: "Vancouver" 
+      });
+      expect(result).toEqual({ minRent: 1500, bedrooms: 2, city: "Vancouver" });
     });
   });
 });

@@ -12,21 +12,30 @@ type MapPanelProps = {
   onSelect?: (id: string) => void;
   onViewportChange?: (bbox: string) => void;
   viewMode?: "list" | "map";
+  resetBounds?: number;
 };
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
-export function MapPanelContent({ properties, activeId, onSelect, onViewportChange, viewMode }: MapPanelProps) {
+export function MapPanelContent({ properties, activeId, onSelect, onViewportChange, viewMode, resetBounds }: MapPanelProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const prevPropertiesJson = useRef<string>("");
   const activeIdRef = useRef<string | null | undefined>(activeId);
   const lastUserInteractionRef = useRef<number>(0);
+  const isResettingRef = useRef(false);
 
   useEffect(() => {
     activeIdRef.current = activeId;
   }, [activeId]);
+
+  // Reset interaction timer when resetBounds is triggered (filter change)
+  useEffect(() => {
+    if (resetBounds) {
+      isResettingRef.current = true;
+    }
+  }, [resetBounds]);
 
   useEffect(() => {
     if (!mapContainerRef.current || !MAPBOX_TOKEN) return;
@@ -145,11 +154,21 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
     }
 
     // Fit bounds if we have properties and they actually changed
-    // But skip if user just zoomed/panned in the last 1000ms to prevent auto-zoom loops
+    // If we're resetting (filter change), always fit bounds
+    // Otherwise, skip if user just zoomed/panned in the last 1000ms to prevent auto-zoom loops
+    const isResetting = isResettingRef.current;
+    if (isResetting) {
+      isResettingRef.current = false;
+    }
+    
     const timeSinceLastInteraction = Date.now() - lastUserInteractionRef.current;
-    if (properties.length > 0 && !bounds.isEmpty() && propertiesChanged && timeSinceLastInteraction > 1000) {
-      map.fitBounds(bounds, { padding: 50, duration: 1000 });
-      prevPropertiesJson.current = propertiesJson;
+    if (properties.length > 0 && !bounds.isEmpty() && propertiesChanged) {
+      if (isResetting || timeSinceLastInteraction > 1000) {
+        map.fitBounds(bounds, { padding: 80, maxZoom: 13, duration: 1000 });
+        prevPropertiesJson.current = propertiesJson;
+      } else {
+        prevPropertiesJson.current = propertiesJson;
+      }
     } else if (propertiesChanged) {
       prevPropertiesJson.current = propertiesJson;
     }
