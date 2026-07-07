@@ -53,6 +53,7 @@ export function PropertyCard({ property, active, onSelect }: PropertyCardProps) 
           alt={property.title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
+          decoding="async"
         />
         <div className="absolute top-2 left-2">
           <span className="rounded-md bg-white/90 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-700 backdrop-blur-sm">

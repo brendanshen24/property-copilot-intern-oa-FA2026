@@ -183,7 +183,7 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
       // or if this is a fresh filter reset.
       if (isResetting || timeSinceLastInteraction > 1500) {
         map.fitBounds(bounds, {
-          padding: 60,
+          padding: 20,
           maxZoom: 15,
           duration: isResetting ? 1000 : 0
         });

@@ -23,6 +23,11 @@ export function BrowseContent() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [resetBoundsCounter, setResetBoundsCounter] = useState(0);
   const viewportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // The map fires onViewportChange once on load to report its initial
+  // bounds. That report shouldn't trigger a second fetch on top of the
+  // one that already happens on mount — but every viewport change after
+  // that (user panning/zooming) should behave normally.
+  const isInitialViewportReportRef = useRef(true);
 
   // Load properties when filter changes
   useEffect(() => {
@@ -68,6 +73,14 @@ export function BrowseContent() {
 
   // Debounce viewport changes to 300ms to avoid spamming the API
   const handleViewportChange = useCallback((bbox: string) => {
+    // Skip the map's automatic initial-bounds report so it doesn't cause
+    // a second fetch immediately after the mount fetch. Every subsequent
+    // viewport change (user panning/zooming) goes through normally.
+    if (isInitialViewportReportRef.current) {
+      isInitialViewportReportRef.current = false;
+      return;
+    }
+
     if (viewportTimeoutRef.current) {
       clearTimeout(viewportTimeoutRef.current);
     }
@@ -84,6 +97,12 @@ export function BrowseContent() {
       }
     };
   }, []);
+
+  // Reset the "initial report" guard whenever the map is reset to fit new
+  // filter results, since it will fire an automatic bounds report again.
+  useEffect(() => {
+    isInitialViewportReportRef.current = true;
+  }, [resetBoundsCounter]);
 
   return (
     <section className="space-y-4">
