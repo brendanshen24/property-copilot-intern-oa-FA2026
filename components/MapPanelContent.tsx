@@ -13,11 +13,12 @@ type MapPanelProps = {
   onViewportChange?: (bbox: string) => void;
   viewMode?: "list" | "map";
   resetBounds?: number;
+  bbox?: string;
 };
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
 
-export function MapPanelContent({ properties, activeId, onSelect, onViewportChange, viewMode, resetBounds }: MapPanelProps) {
+export function MapPanelContent({ properties, activeId, onSelect, onViewportChange, viewMode, resetBounds, bbox }: MapPanelProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -25,6 +26,7 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
   const activeIdRef = useRef<string | null | undefined>(activeId);
   const lastUserInteractionRef = useRef<number>(0);
   const isResettingRef = useRef(false);
+  const lastBboxRef = useRef<string | undefined>();
 
   useEffect(() => {
     activeIdRef.current = activeId;
@@ -57,11 +59,20 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
         lastUserInteractionRef.current = Date.now();
         const bounds = mapRef.current.getBounds();
         if (!bounds) return;
+
+        // Add a small buffer (approx 5%) to the bbox to ensure properties 
+        // on the very edge are included and not cut off by the API filter
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        const latDiff = ne.lat - sw.lat;
+        const lngDiff = ne.lng - sw.lng;
+        const buffer = 0.05; // 5% buffer
+
         const bbox = [
-          bounds.getSouth(),
-          bounds.getWest(),
-          bounds.getNorth(),
-          bounds.getEast()
+          sw.lat - latDiff * buffer,
+          sw.lng - lngDiff * buffer,
+          ne.lat + latDiff * buffer,
+          ne.lng + lngDiff * buffer
         ].join(",");
         onViewportChange(bbox);
       });
@@ -161,13 +172,21 @@ export function MapPanelContent({ properties, activeId, onSelect, onViewportChan
       isResettingRef.current = false;
     }
     
+    // Check if bbox changed - if it did, user panned, so don't fitBounds
+    lastBboxRef.current = bbox;
+    
     const timeSinceLastInteraction = Date.now() - lastUserInteractionRef.current;
     if (properties.length > 0 && !bounds.isEmpty() && propertiesChanged) {
-      if (isResetting || timeSinceLastInteraction > 1000) {
-        map.fitBounds(bounds, { padding: 80, maxZoom: 13, duration: 1000 });
-        prevPropertiesJson.current = propertiesJson;
-      } else {
-        prevPropertiesJson.current = propertiesJson;
+      prevPropertiesJson.current = propertiesJson;
+      
+      // Only auto-fit if it's been a while since the user last moved the map manually,
+      // or if this is a fresh filter reset.
+      if (isResetting || timeSinceLastInteraction > 1500) {
+        map.fitBounds(bounds, {
+          padding: 60,
+          maxZoom: 15,
+          duration: isResetting ? 1000 : 0
+        });
       }
     } else if (propertiesChanged) {
       prevPropertiesJson.current = propertiesJson;

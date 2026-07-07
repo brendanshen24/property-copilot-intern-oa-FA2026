@@ -193,6 +193,7 @@ export function BrowseContent() {
               onViewportChange={handleViewportChange}
               viewMode={viewMode}
               resetBounds={resetBoundsCounter}
+              bbox={filter.bbox}
             />
           </div>
         </div>
