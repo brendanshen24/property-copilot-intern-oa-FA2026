@@ -1,5 +1,6 @@
 import { filterProperties, parseFilter } from "./filter";
-import { getPropertyById, listAllProperties } from "./properties";
+import { getPropertyById, listAllProperties, queryByBoundingBox } from "./properties";
+import type { BoundingBox } from "./geo";
 
 export type ApiRequest = {
   method: string;
@@ -11,6 +12,17 @@ export type ApiResponse = {
   statusCode: number;
   body: unknown;
 };
+
+/**
+ * Parses a comma-separated bounding box string "minLat,minLng,maxLat,maxLng" into a BoundingBox object.
+ */
+function parseBoundingBox(bboxStr: string | undefined): BoundingBox | null {
+  if (!bboxStr) return null;
+  const parts = bboxStr.split(",").map(Number);
+  if (parts.length !== 4 || parts.some(isNaN)) return null;
+  const [minLat, minLng, maxLat, maxLng] = parts;
+  return { minLat, minLng, maxLat, maxLng };
+}
 
 /**
  * Framework-agnostic request router shared by the Lambda handler (production)
@@ -38,13 +50,15 @@ export async function route(req: ApiRequest): Promise<ApiResponse> {
 
   // GET /properties
   //
-  // BASELINE: scans the whole table, applies attribute filters server-side, and
-  // returns the result. There is no viewport/bounding-box support yet — add it
-  // here (read `bbox` from the query, call your geospatial query) so the map
-  // does not request every listing on the planet.
+  // Use viewport/bounding-box support if `bbox` is provided, otherwise fallback to
+  // listAllProperties() (useful for initial load or non-map clients).
   if (req.path === "/properties") {
-    const all = await listAllProperties();
-    const properties = filterProperties(all, parseFilter(req.query));
+    const bbox = parseBoundingBox(req.query.bbox);
+    const unfiltered = bbox 
+      ? await queryByBoundingBox(bbox)
+      : await listAllProperties();
+    
+    const properties = filterProperties(unfiltered, parseFilter(req.query));
     return { statusCode: 200, body: { properties, count: properties.length } };
   }
 

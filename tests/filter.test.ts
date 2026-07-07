@@ -34,6 +34,18 @@ describe("filterProperties", () => {
     expect(both.every((p) => p.rent <= 3000 && p.bedrooms >= 2)).toBe(true);
   });
 
+  test("bathrooms filter is a minimum", () => {
+    const result = filterProperties(PROPERTIES, { bathrooms: 2 });
+    expect(result.every((p) => p.bathrooms >= 2)).toBe(true);
+  });
+
+  test("filters compose: combining rent, bedrooms and bathrooms narrows the result", () => {
+    const rentAndBed = filterProperties(PROPERTIES, { maxRent: 3000, bedrooms: 2 });
+    const all = filterProperties(PROPERTIES, { maxRent: 3000, bedrooms: 2, bathrooms: 1 });
+    expect(all.length).toBeLessThanOrEqual(rentAndBed.length);
+    expect(all.every((p) => p.rent <= 3000 && p.bedrooms >= 2 && p.bathrooms >= 1)).toBe(true);
+  });
+
   test("no filters returns everything", () => {
     expect(filterProperties(PROPERTIES, {})).toHaveLength(PROPERTIES.length);
   });
@@ -42,8 +54,8 @@ describe("filterProperties", () => {
 describe("parseFilter", () => {
   test("parses valid query params", () => {
     expect(
-      parseFilter({ minRent: "1500", maxRent: "3000", bedrooms: "2", propertyType: "house" })
-    ).toEqual({ minRent: 1500, maxRent: 3000, bedrooms: 2, propertyType: "house" });
+      parseFilter({ minRent: "1500", maxRent: "3000", bedrooms: "2", bathrooms: "1.5", propertyType: "house" })
+    ).toEqual({ minRent: 1500, maxRent: 3000, bedrooms: 2, bathrooms: 1.5, propertyType: "house" });
   });
 
   test("ignores invalid property type and absent fields", () => {
